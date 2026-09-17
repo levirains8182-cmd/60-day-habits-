@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>60 Day Habit Challenge</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#050505;color:#f5f5f5;font-family:Arial,sans-serif}.app{max-width:780px;margin:auto;padding:20px}.hidden{display:none!important}
+h1{font-size:31px;margin:0 0 5px}.muted{color:#aaa}.card{background:#111;border:1px solid #292929;border-radius:18px;padding:18px;margin-bottom:15px}
+.add{display:flex;gap:10px}.add input{flex:1}input{background:#1b1b1b;color:white;border:1px solid #444;border-radius:10px;padding:13px;font-size:16px}
+button{border:0;border-radius:10px;padding:11px 15px;font-weight:700;cursor:pointer}.primary{background:#eee;color:#111}.secondary{background:#333;color:#fff}.danger{background:#7b2929;color:#fff}
+.habit{display:flex;align-items:center;gap:13px;padding:15px;background:var(--habit-color,#111);border:2px solid var(--habit-color,#333);border-radius:15px;margin-bottom:10px;cursor:pointer;color:#111;box-shadow:0 4px 14px rgba(0,0,0,.35)}.icon{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:27px;flex:none}.info{flex:1;min-width:0}.name{font-size:19px;font-weight:800;color:#111}.habit .muted{color:#222}.arrow{font-size:26px;color:#111}
+.back{margin-bottom:14px}.detailHead{display:flex;gap:13px;align-items:center}.detailName{font-size:27px;font-weight:800}.progress{height:10px;background:#292929;border-radius:20px;overflow:hidden;margin:13px 0}.bar{height:100%}
+.month{border:1px solid #292929;border-radius:15px;padding:13px;margin-top:14px}.monthTitle{font-size:18px;font-weight:800;margin-bottom:10px}.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.day{min-height:61px;border:1px solid #333;border-radius:9px;padding:6px;background:#0b0b0b;cursor:pointer}.day:hover{border-color:#777}.dayNum{font-weight:800}.dayStatus{font-size:10px;margin-top:6px;color:#999}.did{background:#163b20;border-color:#2f9b52}.miss{background:#3d1717;border-color:#8b3434}
+.legend{display:flex;gap:15px;flex-wrap:wrap;margin-top:12px;color:#aaa;font-size:13px}.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}.yesDot{background:#2f9b52}.noDot{background:#8b3434}.emptyDot{background:#333}
+.settings{border-top:1px solid #292929;margin-top:18px;padding-top:18px}.choices{display:flex;flex-wrap:wrap;gap:8px;margin:9px 0 15px}.emojiChoice{font-size:24px;background:#222;color:white;border:2px solid transparent;width:50px;height:46px;padding:5px}.emojiChoice.selected{border-color:#fff}.colorChoice{width:36px;height:36px;border-radius:50%;border:3px solid transparent;padding:0}.colorChoice.selected{border-color:#fff}
+.actions{display:flex;gap:10px;flex-wrap:wrap}.folder{position:fixed;right:18px;bottom:18px;background:#eee;color:#111;padding:13px 17px;border-radius:14px;cursor:pointer}#completed{display:none;max-width:780px;margin:0 auto 90px;padding:0 20px}.completedHabit{border-bottom:1px solid #292929;padding-bottom:12px;margin-bottom:15px}
+@media(max-width:600px){.app{padding:14px}.add{flex-direction:column}.add button{width:100%}.day{min-height:57px;padding:5px}.dayStatus{font-size:9px}.detailName{font-size:24px}}
+.dayWeek{font-size:9px;color:#777;text-transform:uppercase;margin-top:2px}
+.monthTitle{font-size:16px}
+@media(max-width:600px){.day{min-height:64px}.dayNum{font-size:13px}}
+
+#celebration{
+  position:fixed; inset:0; z-index:9999; display:none;
+  align-items:center; justify-content:center; overflow:hidden;
+  background:rgba(0,0,0,.88); text-align:center;
+}
+#celebration.show{display:flex}
+#celebration .congrats{
+  position:relative; z-index:3; font-size:clamp(36px,9vw,76px);
+  font-weight:900; color:white; text-shadow:0 0 20px rgba(255,255,255,.8);
+  animation:congratsPop .7s ease-out;
+}
+#celebration .sub{font-size:18px;margin-top:12px;font-weight:700}
+.firework{
+  position:absolute; width:8px; height:8px; border-radius:50%;
+  animation:burst 1.4s ease-out forwards;
+  box-shadow:
+    0 -80px 0 #ffdd00, 55px -55px 0 #ff4d4d, 80px 0 0 #59ff7a,
+    55px 55px 0 #55aaff, 0 80px 0 #ff66dd, -55px 55px 0 #ffaa33,
+    -80px 0 0 #66ffff, -55px -55px 0 #ffffff;
+}
+@keyframes burst{
+  0%{transform:scale(.05);opacity:0}
+  15%{opacity:1}
+  100%{transform:scale(1.7);opacity:0}
+}
+@keyframes congratsPop{
+  0%{transform:scale(.3);opacity:0}
+  70%{transform:scale(1.12)}
+  100%{transform:scale(1);opacity:1}
+}
+
+
+/* Keep back buttons with you while scrolling */
+.sticky-back{
+  position:sticky;
+  top:0;
+  z-index:100;
+  padding:12px 0;
+  background:linear-gradient(#000 75%,rgba(0,0,0,0));
+}
+
+
+.reminder-panel{margin-top:14px;padding:14px;border:1px solid #333;border-radius:16px;background:#111}
+.reminder-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.reminder-row input[type=time]{background:#1b1b1b;color:#fff;border:1px solid #444;border-radius:10px;padding:10px;font-size:16px}
+.reminder-status{font-size:13px;opacity:.75;margin-top:8px}
+
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+</head>
+<body><div class="app">
+<section id="home"><h1>60 Day Habit Challenge</h1><div class="muted">Complete 60 days in a row. If you miss, a new 60-day calendar starts after that calendar ends.</div>
+<div class="card"><h2 style="margin-top:0">Add a habit</h2><div class="add"><input id="newHabit" placeholder="Example: Drink Water"><button class="primary" onclick="addHabit()">+ Add Habit</button></div></div>
+<div id="habitList"></div></section>
+
+<section id="detail" class="hidden"><button class="secondary back" onclick="goHome()">← Back</button><div class="card">
+<div class="detailHead"><div class="icon" id="dIcon"></div><div><div class="muted">HABIT</div><div class="detailName" id="dName"></div></div></div>
+<div class="muted" id="stats" style="margin-top:8px"></div><div class="progress"><div class="bar" id="bar"></div></div>
+<div class="legend"><span><i class="dot yesDot"></i>Did it</span><span><i class="dot noDot"></i>Didn't</span><span><i class="dot emptyDot"></i>Not answered</span></div>
+<div id="calendars"></div>
+<div class="settings"><h3>Customize this habit</h3><div class="muted">Choose an icon</div><div class="choices" id="emojis"></div><div class="muted">Choose a color</div><div class="choices" id="colors"></div>
+<div class="actions"><button class="primary" onclick="saveCustomize()">Save Changes</button><button class="danger" onclick="deleteHabit()">Delete Habit</button></div></div>
+</div></section></div>
+
+<div class="folder" onclick="openCompletedScreen()">📁 Completed</div><div id="completed" onclick="openCompletedScreen()"><div class="card"><h2>Completed Habits</h2><div id="completedList"></div></div></div>
+<script>
+const KEY="habit60_final_v4",EMOJIS=[
+"💧","💦","🧴","🥤","🚰","🍎","🍌","🥗","🥦","🍗","🍳","🥛","☕","🍽️",
+"💪","🏋️","🏃","🚴","🏊","⚽","🏀","🏈","⚾","🎾","🏐","🥊","🥋","🛹","🛴","🚶",
+"🧘","🤸","🧗","🏆","🥇","🥈","🎯","🔥","⚡","💯",
+"📖","📚","📕","📗","📘","📙","✏️","📝","📓","📒","🖊️","🧠","🎓",
+"💻","⌨️","🖥️","📱","📅","⏰","⏱️","⏳","🔔","📌","✅","☑️",
+"🧹","🧺","🧼","🧽","🧴","🪥","🚿","🛏️","🧘‍♂️","🧘‍♀️",
+"🎸","🎹","🥁","🎺","🎻","🎤","🎧","🎵","🎶","🎨","📷","🎬",
+"🌱","🌳","🌿","☀️","🌙","⭐","🌟","✨","🌈","☁️",
+"🐶","🐱","🐴","🦊","🐻","🐼","🐸","🦁","🐯","🦅",
+"🚗","🏎️","🏍️","🛞","🔧","🪛","🔨","🛠️","⚙️","⛽",
+"💰","💵","💎","🏠","🛒","📦","💡","🔑","🛡️","🚀"
+],COLORS=["#4f8cff","#35b86b","#f2c94c","#ff7a45","#e05252","#a66cff","#e85aa8","#19b7b0","#ffffff","#9b9b9b"];
+let habits=JSON.parse(localStorage.getItem(KEY)||"[]"),current=null;
+function save(){localStorage.setItem(KEY,JSON.stringify(habits))}function get(){return habits.find(h=>h.id===current)}
+function addHabit(){let x=document.getElementById("newHabit"),n=x.value.trim();if(!n)return;habits.push({id:Date.now(),name:n,emoji:"⭐",color:"#4f8cff",calendars:[makeCalendar()]});x.value="";save();renderHome()}
+function makeCalendar(startDate=new Date()){return {startDate:new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate()).toISOString(),days:{},completed:false}}
+function calendarStatus(c){return Object.values(c.days).length===60 && Object.values(c.days).every(v=>v===true)}
+function startNextCalendar(h){h.calendars.push(makeCalendar())}
+function renderHome(){let b=document.getElementById("habitList");b.innerHTML="";let active=habits.filter(h=>!h.completed);if(!active.length){b.innerHTML='<div class="card muted" style="text-align:center">Add your first habit above.</div>';return}
+active.forEach(h=>{let c=h.calendars[h.calendars.length-1],done=Object.values(c.days).filter(v=>v===true).length,answered=Object.keys(c.days).length;
+let e=document.createElement("div");e.className="habit";e.style.setProperty("--habit-color",h.color);e.style.background=h.color;e.onclick=()=>open(h.id);e.innerHTML=`<div class="icon" style="background:${h.color}2b;border:1px solid ${h.color}88">${h.emoji}</div><div class="info"><div class="name"></div><div class="muted">Calendar ${h.calendars.length} • ${done}/60 days completed • ${answered}/60 answered</div></div><div class="arrow" style="color:${h.color}">›</div>`;e.querySelector(".name").textContent=h.name;b.appendChild(e)})}
+function open(id){current=id;document.getElementById("home").classList.add("hidden");document.getElementById("detail").classList.remove("hidden");renderDetail()}
+function goHome(){current=null;document.getElementById("detail").classList.add("hidden");document.getElementById("home").classList.remove("hidden");renderHome()}
+function renderDetail(){let h=get(),totalDone=0,allAnswered=0;h.calendars.forEach(c=>{totalDone+=Object.values(c.days).filter(v=>v===true).length;allAnswered+=Object.keys(c.days).length});
+document.getElementById("dName").textContent=h.name;document.getElementById("dIcon").textContent=h.emoji;document.getElementById("dIcon").style.background=h.color+"22";document.getElementById("dIcon").style.border="1px solid "+h.color+"66";document.getElementById("stats").textContent=`${totalDone} total days completed • ${allAnswered} days answered`;document.getElementById("bar").style.width=Math.min(totalDone/60*100,100)+"%";document.getElementById("bar").style.background=h.color;
+let box=document.getElementById("calendars");box.innerHTML="";
+h.calendars.forEach((c,i)=>{
+  if(!c.startDate)c.startDate=new Date().toISOString();
+  let start=new Date(c.startDate),m=document.createElement("div");m.className="month";
+  let title=document.createElement("div");title.className="monthTitle";
+  let end=new Date(start);end.setDate(start.getDate()+55);
+  title.textContent=`${start.toLocaleDateString(undefined,{month:"long",day:"numeric",year:"numeric"})} – ${end.toLocaleDateString(undefined,{month:"long",day:"numeric",year:"numeric"})}${c.completed?" ✓ Completed":""}`;
+  m.appendChild(title);
+  let grid=document.createElement("div");grid.className="calendar";
+  for(let d=0;d<60;d++){
+    let date=new Date(start);date.setDate(start.getDate()+d);
+    let key=date.toISOString().slice(0,10),v=c.days[key],el=document.createElement("div");
+    el.className="day "+(v===true?"did":v===false?"miss":"");
+    el.innerHTML=`<div class="dayNum">${date.toLocaleDateString(undefined,{month:"short",day:"numeric"})}</div><div class="dayWeek">${date.toLocaleDateString(undefined,{weekday:"short"})}</div><div class="dayStatus">${v===true?"✓ DID IT":v===false?"✕ DIDN'T":"Tap to mark"}</div>`;
+    if(!c.completed)el.onclick=()=>mark(i,key);
+    grid.appendChild(el)
+  }
+  m.appendChild(grid);box.appendChild(m)
+});
+renderChoices(h)}
+function mark(ci,key){
+  let h=get(),c=h&&h.calendars?h.calendars[ci]:null;
+  if(!h||!c||c.completed||h.completed)return;
+  let v=c.days[key];
+  if(v===undefined)c.days[key]=true;
+  else if(v===true)c.days[key]=false;
+  else delete c.days[key];
+
+  if(calendarStatus(c)){
+    c.completed=true;
+    h.completed=true;
+    h.completedDate=new Date().toISOString();
+    h.completedCalendar=c;
+    h.calendars=[];
+    save();
+    showCelebration(h.name);
+    current=null;
+    document.getElementById("detail").classList.add("hidden");
+    document.getElementById("home").classList.remove("hidden");
+    renderHome();
+    updateCompleted();
+    return;
+  }
+  save();renderDetail();renderHome();updateCompleted();
+}
+function renderChoices(h){let e=document.getElementById("emojis"),c=document.getElementById("colors");e.innerHTML="";c.innerHTML="";
+EMOJIS.forEach(x=>{let b=document.createElement("button");b.className="emojiChoice"+(h.emoji===x?" selected":"");b.textContent=x;b.onclick=()=>{h.tempEmoji=x;document.querySelectorAll(".emojiChoice").forEach(q=>q.classList.remove("selected"));b.classList.add("selected")};e.appendChild(b)});
+COLORS.forEach(x=>{let b=document.createElement("button");b.className="colorChoice"+(h.color===x?" selected":"");b.style.background=x;b.onclick=()=>{h.tempColor=x;document.querySelectorAll(".colorChoice").forEach(q=>q.classList.remove("selected"));b.classList.add("selected")};c.appendChild(b)})}
+function saveCustomize(){let h=get();if(h.tempEmoji)h.emoji=h.tempEmoji;if(h.tempColor)h.color=h.tempColor;delete h.tempEmoji;delete h.tempColor;save();renderDetail();renderHome()}
+function deleteHabit(){
+  let h=get();
+  if(!h)return;
+  if(!confirm(`Delete "${h.name}"? This cannot be undone.`))return;
+  habits=habits.filter(x=>x.id!==h.id);
+  save();
+  current=null;
+  document.getElementById("detail").classList.add("hidden");
+  document.getElementById("home").classList.remove("hidden");
+  renderHome();
+  updateCompleted();
+}
+function updateCompleted(){let l=document.getElementById("completedList");l.innerHTML="";habits.filter(h=>h.completed).forEach(h=>{let x=document.createElement("div");x.className="completedHabit";x.innerHTML=`<h3>${h.emoji} ${h.name}</h3><div class="muted">Completed 60 consecutive days ✓</div>`;l.appendChild(x)});if(!l.children.length)l.innerHTML='<div class="muted">No habits completed yet.</div>'}
+function toggleCompleted(){let x=document.getElementById("completed");x.style.display=x.style.display==="block"?"none":"block";updateCompleted()}
+document.getElementById("newHabit").addEventListener("keydown",e=>{if(e.key==="Enter")addHabit()});renderHome();updateCompleted();
+
+function migrateAlreadyCompletedHabits60(){
+  let changed=false;
+  habits.forEach(h=>{
+    if(h.completed||!Array.isArray(h.calendars))return;
+    const done=h.calendars.find(c=>c&&(c.completed||calendarStatus(c)));
+    if(done){
+      h.completed=true;
+      h.completedDate=h.completedDate||new Date().toISOString();
+      h.completedCalendar=done;
+      h.calendars=[];
+      changed=true;
+    }
+  });
+  if(changed)save();
+}
+migrateAlreadyCompletedHabits60();
+
+function showCelebration(habitName){
+  const el=document.getElementById("celebration");
+  if(!el)return;
+  el.innerHTML=`<div><div class="congrats">🎉 CONGRATULATIONS! 🎉</div><div class="sub">You completed all 60 days of "${habitName}"!</div></div>`;
+  const spots=[[18,25],[50,18],[82,28],[28,68],[72,70],[50,52]];
+  spots.forEach((p,i)=>{
+    const f=document.createElement("div");
+    f.className="firework";
+    f.style.left=p[0]+"%";
+    f.style.top=p[1]+"%";
+    f.style.animationDelay=(i*.15)+"s";
+    el.appendChild(f);
+  });
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),3200);
+}
+
+
+function openCompletedScreen(){
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("detail").classList.add("hidden");
+  const screen=document.getElementById("completedScreen");
+  screen.classList.remove("hidden");
+  renderCompletedScreen();
+  window.scrollTo(0,0);
+}
+function closeCompletedScreen(){
+  document.getElementById("completedScreen").classList.add("hidden");
+  document.getElementById("detail").classList.add("hidden");
+  document.getElementById("home").classList.remove("hidden");
+  renderHome();
+  window.scrollTo(0,0);
+}
+function renderCompletedScreen(){
+  const box=document.getElementById("completedScreenList");
+  if(!box)return;
+  const done=habits.filter(h=>h.completed);
+  if(!done.length){
+    box.innerHTML='<div class="card"><b>No completed habits yet.</b><div class="muted">Finish all 60 days and your habit will appear here.</div></div>';
+    return;
+  }
+  box.innerHTML=done.map(h=>{
+    const icon=h.icon||'✓';
+    const color=h.color||'#ffffff';
+    return `<div class="card" style="border-color:${color};margin-bottom:12px">
+      <div style="font-size:28px">${icon}</div>
+      <div style="font-size:20px;font-weight:900">${h.name}</div>
+      <div class="muted">✅ Completed all 60 days</div>
+    </div>`;
+  }).join('');
+}
+
+
+function enableNotifications(){
+  if(!("Notification" in window)){
+    alert("Notifications are not supported in this browser.");
+    return;
+  }
+  Notification.requestPermission().then(p=>{
+    if(p==="granted"){
+      alert("Notifications are turned on! 🔔");
+    }else{
+      alert("Notifications were not enabled. You can allow them later in your browser or iPhone settings.");
+    }
+  });
+}
+function ensureReminderFields(h){
+  if(h.reminderEnabled===undefined)h.reminderEnabled=false;
+  if(!h.reminderTime)h.reminderTime="20:00";
+}
+function saveReminder(enabled,time){
+  let h=get(); if(!h)return;
+  ensureReminderFields(h);
+  h.reminderEnabled=enabled;
+  h.reminderTime=time||"20:00";
+  save();
+  renderReminderControls();
+}
+function renderReminderControls(){
+  let h=get(); if(!h)return;
+  ensureReminderFields(h);
+  const detail=document.getElementById("detail");
+  if(!detail)return;
+  let panel=document.getElementById("habitReminderPanel");
+  if(!panel){
+    panel=document.createElement("div");
+    panel.id="habitReminderPanel";
+    panel.className="reminder-panel";
+    const firstCalendar=detail.querySelector(".calendar")||detail.lastElementChild;
+    detail.appendChild(panel);
+  }
+  panel.innerHTML=`<b>🔔 Reminder</b>
+    <div class="reminder-row" style="margin-top:10px">
+      <label><input type="checkbox" ${h.reminderEnabled?"checked":""} onchange="saveReminder(this.checked,document.getElementById('habitReminderTime').value)"> Remind me</label>
+      <input id="habitReminderTime" type="time" value="${h.reminderTime}" onchange="saveReminder(document.querySelector('#habitReminderPanel input[type=checkbox]').checked,this.value)">
+    </div>
+    <div class="reminder-status">If this habit is not marked done for today by this time, the app will remind you.</div>`;
+}
+function todayKeyForHabit(h){
+  const d=new Date();
+  return d.toISOString().slice(0,10);
+}
+function isHabitDoneToday(h){
+  if(!h||h.completed||!Array.isArray(h.calendars))return true;
+  const key=todayKeyForHabit(h);
+  return h.calendars.some(c=>c.days && c.days[key]===true);
+}
+function checkHabitReminders(){
+  if(!("Notification" in window)||Notification.permission!=="granted")return;
+  const now=new Date();
+  const hh=String(now.getHours()).padStart(2,"0");
+  const mm=String(now.getMinutes()).padStart(2,"0");
+  const time=hh+":"+mm;
+  const today=now.toISOString().slice(0,10);
+  habits.forEach(h=>{
+    ensureReminderFields(h);
+    if(!h.reminderEnabled||h.completed||h.reminderTime!==time||isHabitDoneToday(h))return;
+    if(h.lastReminderDate===today)return;
+    new Notification("Habit reminder 🔔",{body:`You haven't completed "${h.name}" yet today.`});
+    h.lastReminderDate=today;
+    save();
+  });
+}
+setInterval(checkHabitReminders,30000);
+setTimeout(checkHabitReminders,1500);
+
+const _oldRenderDetail=renderDetail;
+renderDetail=function(){
+  _oldRenderDetail();
+  setTimeout(renderReminderControls,0);
+};
+
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
+}
+
+</script>
+
+<div id="completedScreen" class="hidden">
+  <div class="sticky-back"><button class="secondary" onclick="closeCompletedScreen()">← Back</button></div>
+  <h1>📁 Completed Habits</h1>
+  <p class="muted">Every habit you have fully completed will stay here.</p>
+  <div id="completedScreenList"></div>
+</div>
+
+<div id="celebration">
+  <div>
+    <div class="congrats">🎉 CONGRATULATIONS! 🎉</div>
+    <div class="sub">You completed your 60-day habit!</div>
+  </div>
+</div>
+
+</body></html>
